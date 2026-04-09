@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const CLIENT_ID = "3MVG9WVXk15qiz1KyCZETiV7jKKaOiGv7UFSQpjxyZjKGBPunb3F6P9VtSfE0YnEm9SwCbAeozjyTb89ZYkd0";
+const CLIENT_ID =
+  "3MVG9WVXk15qiz1KyCZETiV7jKKaOiGv7UFSQpjxyZjKGBPunb3F6P9VtSfE0YnEm9SwCbAeozjyTb89ZYkd0";
 const REDIRECT_URI = "http://localhost:3000/oauth/callback";
-const PROXY_BASE = "http://localhost:3001/sfdc";
+const PROXY_BASE = "https://salesforce-validation-switch.onrender.com/sfdc";
 const API_VERSION = "v59.0";
 
 export default function App() {
@@ -62,19 +63,21 @@ export default function App() {
       const query = `SELECT Id, ValidationName, Active FROM ValidationRule WHERE EntityDefinition.QualifiedApiName = 'Account'`;
       const res = await axios.get(
         `${PROXY_BASE}/services/data/${API_VERSION}/tooling/query?q=${encodeURIComponent(query)}`,
-        { headers: getHeaders() }
+        { headers: getHeaders() },
       );
       setRules(res.data.records.map((r) => ({ ...r, _pending: r.Active })));
       setMessage("");
     } catch (err) {
-      setMessage("Error fetching rules: " + (err.response?.data?.message || err.message));
+      setMessage(
+        "Error fetching rules: " + (err.response?.data?.message || err.message),
+      );
     }
     setLoading(false);
   };
 
   const toggleRule = (id) => {
     setRules((prev) =>
-      prev.map((r) => (r.Id === id ? { ...r, _pending: !r._pending } : r))
+      prev.map((r) => (r.Id === id ? { ...r, _pending: !r._pending } : r)),
     );
   };
 
@@ -104,13 +107,15 @@ export default function App() {
               ...getHeaders(),
               "Content-Type": "application/json",
             },
-          }
+          },
         );
       }
       setRules((prev) => prev.map((r) => ({ ...r, Active: r._pending })));
       setMessage("✅ Changes deployed successfully!");
     } catch (err) {
-      setMessage("❌ Deploy failed: " + (err.response?.data?.message || err.message));
+      setMessage(
+        "❌ Deploy failed: " + (err.response?.data?.message || err.message),
+      );
     }
     setDeploying(false);
   };
@@ -126,7 +131,8 @@ export default function App() {
       <div style={styles.main}>
         <h1 style={styles.title}>Salesforce Switch</h1>
         <p style={styles.subtitle}>
-          Manage your Salesforce Validation Rules — enable, disable, and deploy changes directly.
+          Manage your Salesforce Validation Rules — enable, disable, and deploy
+          changes directly.
         </p>
 
         {!accessToken ? (
@@ -149,7 +155,9 @@ export default function App() {
         ) : (
           <>
             <div style={styles.card}>
-              <p><b>Logged in as:</b></p>
+              <p>
+                <b>Logged in as:</b>
+              </p>
               <p>Username: {userInfo?.preferred_username}</p>
               <p>Organisation: {userInfo?.organization_id}</p>
               <div style={styles.row}>
@@ -181,7 +189,9 @@ export default function App() {
                     }}
                     disabled={deploying || !hasPendingChanges}
                   >
-                    {deploying ? "Deploying..." : `DEPLOY CHANGES${hasPendingChanges ? ` (${rules.filter(r => r._pending !== r.Active).length})` : ""}`}
+                    {deploying
+                      ? "Deploying..."
+                      : `DEPLOY CHANGES${hasPendingChanges ? ` (${rules.filter((r) => r._pending !== r.Active).length})` : ""}`}
                   </button>
                 </div>
 
