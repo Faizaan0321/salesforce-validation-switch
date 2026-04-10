@@ -3,7 +3,7 @@ import axios from "axios";
 
 const CLIENT_ID =
   "3MVG9WVXk15qiz1KyCZETiV7jKKaOiGv7UFSQpjxyZjKGBPunb3F6P9VtSfE0YnEm9SwCbAeozjyTb89ZYkd0";
-const REDIRECT_URI = "http://localhost:3000/oauth/callback";
+const REDIRECT_URI = "https://salesforce-validation-switch.vercel.app/oauth/callback";
 const PROXY_BASE = "https://salesforce-validation-switch.onrender.com/sfdc";
 const API_VERSION = "v59.0";
 
