@@ -45,7 +45,10 @@ export default function App() {
       environment === "sandbox"
         ? "https://test.salesforce.com"
         : "https://login.salesforce.com";
-    window.location.href = `${base}/services/oauth2/authorize?response_type=token&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+
+    window.location.href = `${base}/services/oauth2/authorize?response_type=token&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
+      REDIRECT_URI
+    )}`;
   };
 
   const handleLogout = () => {
@@ -62,14 +65,17 @@ export default function App() {
     try {
       const query = `SELECT Id, ValidationName, Active FROM ValidationRule WHERE EntityDefinition.QualifiedApiName = 'Account'`;
       const res = await axios.get(
-        `${PROXY_BASE}/services/data/${API_VERSION}/tooling/query?q=${encodeURIComponent(query)}`,
-        { headers: getHeaders() },
+        `${PROXY_BASE}/services/data/${API_VERSION}/tooling/query?q=${encodeURIComponent(
+          query
+        )}`,
+        { headers: getHeaders() }
       );
       setRules(res.data.records.map((r) => ({ ...r, _pending: r.Active })));
       setMessage("");
     } catch (err) {
       setMessage(
-        "Error fetching rules: " + (err.response?.data?.message || err.message),
+        "Error fetching rules: " +
+          (err.response?.data?.message || err.message)
       );
     }
     setLoading(false);
@@ -77,7 +83,7 @@ export default function App() {
 
   const toggleRule = (id) => {
     setRules((prev) =>
-      prev.map((r) => (r.Id === id ? { ...r, _pending: !r._pending } : r)),
+      prev.map((r) => (r.Id === id ? { ...r, _pending: !r._pending } : r))
     );
   };
 
@@ -107,14 +113,14 @@ export default function App() {
               ...getHeaders(),
               "Content-Type": "application/json",
             },
-          },
+          }
         );
       }
       setRules((prev) => prev.map((r) => ({ ...r, Active: r._pending })));
       setMessage("✅ Changes deployed successfully!");
     } catch (err) {
       setMessage(
-        "❌ Deploy failed: " + (err.response?.data?.message || err.message),
+        "❌ Deploy failed: " + (err.response?.data?.message || err.message)
       );
     }
     setDeploying(false);
@@ -193,10 +199,9 @@ export default function App() {
                       ? "Deploying..."
                       : `DEPLOY CHANGES${
                           hasPendingChanges
-                            ? ` (${
-                                rules.filter((r) => r._pending !== r.Active)
-                                  .length
-                              })`
+                            ? ` (${rules.filter(
+                                (r) => r._pending !== r.Active
+                              ).length})`
                             : ""
                         }`}
                   </button>
@@ -220,7 +225,9 @@ export default function App() {
                 {rules.map((rule) => (
                   <div key={rule.Id} style={styles.ruleRow}>
                     <div>
-                      <span style={styles.ruleName}>{rule.ValidationName}</span>
+                      <span style={styles.ruleName}>
+                        {rule.ValidationName}
+                      </span>
                       {rule._pending !== rule.Active && (
                         <span style={styles.pendingBadge}>modified</span>
                       )}
