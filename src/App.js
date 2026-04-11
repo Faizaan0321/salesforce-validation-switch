@@ -50,7 +50,7 @@ export default function App() {
         : "https://login.salesforce.com";
 
     window.location.href = `${base}/services/oauth2/authorize?response_type=token&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
-      REDIRECT_URI,
+      REDIRECT_URI
     )}`;
   };
 
@@ -70,9 +70,9 @@ export default function App() {
 
       const res = await axios.get(
         `${PROXY_BASE}/services/data/${API_VERSION}/tooling/query?q=${encodeURIComponent(
-          query,
+          query
         )}`,
-        { headers: getHeaders() },
+        { headers: getHeaders() }
       );
 
       setRules(res.data.records.map((r) => ({ ...r, _pending: r.Active })));
@@ -85,7 +85,7 @@ export default function App() {
 
   const toggleRule = (id) => {
     setRules((prev) =>
-      prev.map((r) => (r.Id === id ? { ...r, _pending: !r._pending } : r)),
+      prev.map((r) => (r.Id === id ? { ...r, _pending: !r._pending } : r))
     );
   };
 
@@ -106,6 +106,7 @@ export default function App() {
           `${PROXY_BASE}/services/data/${API_VERSION}/tooling/sobjects/ValidationRule/${rule.Id}`,
           {
             Metadata: {
+              fullName: rule.ValidationName,
               active: rule._pending,
             },
           },
@@ -114,15 +115,15 @@ export default function App() {
               ...getHeaders(),
               "Content-Type": "application/json",
             },
-          },
+          }
         );
       }
 
       setRules((prev) => prev.map((r) => ({ ...r, Active: r._pending })));
-      setMessage("Deployed successfully");
+      setMessage("✅ Deployed successfully");
     } catch (err) {
       setMessage(
-        "Deploy failed: " + (err.response?.data?.message || err.message),
+        "❌ Deploy failed: " + (err.response?.data?.message || err.message)
       );
     }
 
@@ -146,13 +147,15 @@ export default function App() {
       ) : (
         <>
           <h3>Username: {userInfo?.preferred_username}</h3>
-          <h3>Org: {userInfo?.organization_name}</h3>
+          <h3>Organisation: {userInfo?.organization_name}</h3>
 
           <button onClick={handleLogout}>LOGOUT</button>
-          <button onClick={fetchRules}>GET METADATA</button>
+          <button onClick={fetchRules} disabled={loading}>
+            {loading ? "Loading..." : "GET METADATA"}
+          </button>
 
           <button onClick={deployChanges} disabled={deploying}>
-            DEPLOY
+            {deploying ? "Deploying..." : "DEPLOY"}
           </button>
 
           {rules.map((r) => (
