@@ -3,7 +3,9 @@ import axios from "axios";
 
 const CLIENT_ID =
   "3MVG9WVXk15qiz1KyCZETiV7jKKaOiGv7UFSQpjxyZjKGBPunb3F6P9VtSfE0YnEm9SwCbAeozjyTb89ZYkd0";
+
 const REDIRECT_URI = "https://salesforce-validation-switch.vercel.app/";
+
 const PROXY_BASE = "https://salesforce-validation-switch.onrender.com/sfdc";
 const API_VERSION = "v59.0";
 
@@ -19,11 +21,14 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash;
-    if (!hash.includes("access_token")) return;
+
+    if (!hash || !hash.includes("access_token")) return;
 
     const params = new URLSearchParams(hash.replace("#", "?"));
     const token = params.get("access_token");
     const url = decodeURIComponent(params.get("instance_url"));
+
+    if (!token || !url) return;
 
     setAccessToken(token);
     setInstanceUrl(url);
@@ -35,7 +40,7 @@ export default function App() {
       .then((res) => setUserInfo(res.data))
       .catch(() => setUserInfo(null));
 
-    window.history.replaceState(null, null, "/");
+    window.history.replaceState({}, document.title, "/");
   }, []);
 
   const getHeaders = () => ({
@@ -50,7 +55,7 @@ export default function App() {
         : "https://login.salesforce.com";
 
     window.location.href = `${base}/services/oauth2/authorize?response_type=token&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
-      REDIRECT_URI
+      REDIRECT_URI,
     )}`;
   };
 
@@ -63,29 +68,39 @@ export default function App() {
   };
 
   const fetchRules = async () => {
+    if (!accessToken || !instanceUrl) return;
+
     setLoading(true);
     setMessage("Fetching validation rules...");
+
     try {
       const query = `SELECT Id, ValidationName, Active FROM ValidationRule WHERE EntityDefinition.QualifiedApiName = 'Account'`;
 
       const res = await axios.get(
         `${PROXY_BASE}/services/data/${API_VERSION}/tooling/query?q=${encodeURIComponent(
-          query
+          query,
         )}`,
-        { headers: getHeaders() }
+        { headers: getHeaders() },
       );
 
-      setRules(res.data.records.map((r) => ({ ...r, _pending: r.Active })));
+      setRules(
+        res.data.records.map((r) => ({
+          ...r,
+          _pending: r.Active,
+        })),
+      );
+
       setMessage("");
     } catch (err) {
       setMessage(err.response?.data?.message || err.message);
     }
+
     setLoading(false);
   };
 
   const toggleRule = (id) => {
     setRules((prev) =>
-      prev.map((r) => (r.Id === id ? { ...r, _pending: !r._pending } : r))
+      prev.map((r) => (r.Id === id ? { ...r, _pending: !r._pending } : r)),
     );
   };
 
@@ -115,15 +130,16 @@ export default function App() {
               ...getHeaders(),
               "Content-Type": "application/json",
             },
-          }
+          },
         );
       }
 
       setRules((prev) => prev.map((r) => ({ ...r, Active: r._pending })));
+
       setMessage("✅ Deployed successfully");
     } catch (err) {
       setMessage(
-        "❌ Deploy failed: " + (err.response?.data?.message || err.message)
+        "❌ Deploy failed: " + (err.response?.data?.message || err.message),
       );
     }
 
@@ -150,15 +166,15 @@ export default function App() {
           <h3>Organisation: {userInfo?.organization_name}</h3>
 
           <button onClick={handleLogout}>LOGOUT</button>
-          <button onClick={fetchRules} disabled={loading}>
+          <button onClick={fetchRules}>
             {loading ? "Loading..." : "GET METADATA"}
           </button>
 
-          <button onClick={deployChanges} disabled={deploying}>
+          <button onClick={deployChanges}>
             {deploying ? "Deploying..." : "DEPLOY"}
           </button>
 
-          {rules.map((r) => (
+          {rules?.map((r) => (
             <div key={r.Id}>
               {r.ValidationName}
               <button onClick={() => toggleRule(r.Id)}>
